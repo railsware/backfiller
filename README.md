@@ -1,3 +1,5 @@
+![Backfiller](https://railsware.github.io/backfiller/assets/backfiller.jpg)
+
 # Backfiller
 
 The backfill machine for null database columns.
