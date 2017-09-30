@@ -1,4 +1,4 @@
-![Backfiller](https://railsware.github.io/backfiller/assets/backfiller.jpg)
+![Backfill machine](https://railsware.github.io/backfiller/assets/backfill_machine.jpg)
 
 # Backfiller
 
