@@ -53,6 +53,7 @@ Create backfill task into `db/backfill/profile_name.rb` and defined required met
 
 ```ruby
 class Backfill::ProfileName
+
   def select_sql
     <<-SQL.strip_heredoc
       SELECT
@@ -70,10 +71,11 @@ class Backfill::ProfileName
     <<-SQL.strip_heredoc
       UPDATE profiles SET
         name = #{connection.quote(row['profile_name'])}
-     WHERE
-       id = #{connection.quote(row[:profile_id])}
+      WHERE
+       id = #{connection.quote(row['profile_id'])}
     SQL
   end
+
 end
 ```
 
