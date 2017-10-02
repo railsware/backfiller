@@ -16,10 +16,9 @@ This gem maybe handly for `no-downtime` deployment especially when you need to f
 * add migration that disallow null values (null: false)
 * deploy code that starts using new column
 
-
 ## Concept
 
-Idea is to prepare all data in selection method on database server and fetch all data using CURSOR and then build simple UPDATE queries.
+The idea is to prepare all data in selection method on database server and fetch it data using CURSOR feature and then build simple UPDATE queries.
 With this way we minimize db server resources usage and we lock only one record (atomic update).
 We use two connections to database:
 * master - to creates cursor in transaction and fetch data in batches.
@@ -29,7 +28,8 @@ Even if backfill process crashes you may resolve issue and run it again to proce
 
 ## Connection adapters
 
-Curently it supports only PostgreSQL ActiveRecord adapter.
+Curently it support next ActiveRecord connection adapters:
+* PostgreSQL
 
 ## Installation
 
@@ -94,7 +94,7 @@ For Rails application backfiller is initialized with next options
 
 * task_directory: `RAILS_ROOT/db/backfill`
 * task_namespace: `Backfill`
-* batch_size - `1_000`
+* batch_size: `1_000`
 * connection_pool: `ApplicationRecord.connection_pool`
 * logger: `ApplicationRecord.logger`
 
