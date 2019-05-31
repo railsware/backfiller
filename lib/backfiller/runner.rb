@@ -17,7 +17,7 @@ module Backfiller
       worker_connection = acquire_connection
 
       fetch_each(master_connection) do |row|
-        update_row(worker_connection, row)
+        process_row(worker_connection, row)
       end
 
       release_connection(master_connection)
@@ -80,8 +80,8 @@ module Backfiller
       end
     end
 
-    def update_row(connection, row)
-      Array(task.update_sql(connection, row)).each do |sql|
+    def process_row(connection, row)
+      Array(task.execute_sql(connection, row)).each do |sql|
         connection.execute(sql)
       end
     end

@@ -71,7 +71,7 @@ class Backfill::ProfileName
     SQL
   end
 
-  def update_sql(connection, row)
+  def execute_sql(connection, row)
     <<~SQL
       UPDATE profiles SET
         name = #{connection.quote(row['profile_name'])}
@@ -101,7 +101,7 @@ class Backfill::ProfileName
     SQL
   end
 
-  def update_sql(connection, row)
+  def execute_sql(connection, row)
     [
       'BEGIN',
       <<~SQL,
