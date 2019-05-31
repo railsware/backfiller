@@ -118,6 +118,42 @@ class Backfill::ProfileName
 end
 
 ```
+
+#### Custom row processing
+
+```ruby
+class Backfill::ProfileName
+
+  def select_sql
+    <<~SQL
+      SELECT
+        profile.id AS profile_id,
+        CONCAT(users.first_name, ' ', users.last_name) AS profile_name
+      FROM profiles
+      INNER JOIN users ON
+        users.id = profiles.user_id
+      WHERE
+        profiles.name IS NULL
+    SQL
+  end
+
+  def process_row(connection, row)
+    connection.execute 'BEGIN'
+    if connection.select_value 'SELECT pg_try_advisory_xact_lock(12345678)'
+      connection.execute <<~SQL
+        INSERT INTO contacts(
+          full_name
+        )
+        VALUES(
+          #{connection.quote(row['profile_name'])},
+        )
+      SQL
+    connection.execute 'COMMIT'
+  end
+
+end
+
+```
 And then just run rake task:
 
 ```bash
