@@ -81,7 +81,9 @@ module Backfiller
     end
 
     def update_row(connection, row)
-      connection.execute task.update_sql(connection, row)
+      Array(task.update_sql(connection, row)).each do |sql|
+        connection.execute(sql)
+      end
     end
 
   end
