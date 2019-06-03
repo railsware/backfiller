@@ -4,12 +4,14 @@ module Backfiller
     attr_reader \
       :task,
       :connection_pool,
-      :batch_size
+      :batch_size,
+      :process_method
 
     def initialize(task_name)
       @task = build_task(task_name)
       @connection_pool = @task.respond_to?(:connection_pool) ? @task.connection_pool : Backfiller.connection_pool
       @batch_size = @task.respond_to?(:batch_size) ? @task.batch_size : Backfiller.batch_size
+      @process_method = @task.respond_to?(:process_row) ? @task.method(:process_row) : self.method(:process_row)
     end
 
     def run
@@ -17,7 +19,7 @@ module Backfiller
       worker_connection = acquire_connection
 
       fetch_each(master_connection) do |row|
-        update_row(worker_connection, row)
+        process_method(worker_connection, row)
       end
 
       release_connection(master_connection)
@@ -80,9 +82,10 @@ module Backfiller
       end
     end
 
-    def update_row(connection, row)
-      connection.execute task.update_sql(connection, row)
+    def process_row(connection, row)
+      Array(task.execute_sql(connection, row)).each do |sql|
+        connection.execute(sql)
+      end
     end
-
   end
 end

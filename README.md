@@ -53,11 +53,13 @@ Assume we we want to backfill `profiles.name` column from `users.first_name`, `u
 
 Create backfill task into `db/backfill/profile_name.rb` and defined required methods:
 
+#### Single worker execution query
+
 ```ruby
 class Backfill::ProfileName
 
   def select_sql
-    <<-SQL.strip_heredoc
+    <<~SQL
       SELECT
         profile.id AS profile_id,
         CONCAT(users.first_name, ' ', users.last_name) AS profile_name
@@ -69,8 +71,8 @@ class Backfill::ProfileName
     SQL
   end
 
-  def update_sql(connection, row)
-    <<-SQL.strip_heredoc
+  def execute_sql(connection, row)
+    <<~SQL
       UPDATE profiles SET
         name = #{connection.quote(row['profile_name'])}
       WHERE
@@ -81,12 +83,82 @@ class Backfill::ProfileName
 end
 ```
 
+#### Multiple worker execution queries
+
+```ruby
+class Backfill::ProfileName
+
+  def select_sql
+    <<~SQL
+      SELECT
+        profile.id AS profile_id,
+        CONCAT(users.first_name, ' ', users.last_name) AS profile_name
+      FROM profiles
+      INNER JOIN users ON
+        users.id = profiles.user_id
+      WHERE
+        profiles.name IS NULL
+    SQL
+  end
+
+  def execute_sql(connection, row)
+    [
+      'BEGIN',
+      <<~SQL,
+        UPDATE profiles SET
+          name = #{connection.quote(row['profile_name'])}
+        WHERE
+         id = #{connection.quote(row['profile_id'])} AND
+        (SELECT pg_try_advisory_xact_lock(12345678)') = TRUE
+      SQL
+      'COMMIT'
+    ]
+  end
+
+end
+
+```
+
+#### Custom row processing
+
+```ruby
+class Backfill::ProfileName
+
+  def select_sql
+    <<~SQL
+      SELECT
+        profile.id AS profile_id,
+        CONCAT(users.first_name, ' ', users.last_name) AS profile_name
+      FROM profiles
+      INNER JOIN users ON
+        users.id = profiles.user_id
+      WHERE
+        profiles.name IS NULL
+    SQL
+  end
+
+  def process_row(connection, row)
+    connection.execute 'BEGIN'
+    if connection.select_value 'SELECT pg_try_advisory_xact_lock(12345678)'
+      connection.execute <<~SQL
+        INSERT INTO contacts(
+          full_name
+        )
+        VALUES(
+          #{connection.quote(row['profile_name'])},
+        )
+      SQL
+    connection.execute 'COMMIT'
+  end
+
+end
+
+```
 And then just run rake task:
 
 ```bash
 $ rails db:backfill[profile_name]
 ```
-
 
 ## Configuration
 
