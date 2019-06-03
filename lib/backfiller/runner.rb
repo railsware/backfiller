@@ -19,7 +19,7 @@ module Backfiller
       worker_connection = acquire_connection
 
       fetch_each(master_connection) do |row|
-        process_method(worker_connection, row)
+        process_method.call(worker_connection, row)
       end
 
       release_connection(master_connection)
