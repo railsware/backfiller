@@ -148,6 +148,7 @@ class Backfill::ProfileName
           #{connection.quote(row['profile_name'])},
         )
       SQL
+    end
     connection.execute 'COMMIT'
   end
 
