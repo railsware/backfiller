@@ -7,11 +7,11 @@ This gem maybe handly for `no-downtime` deployment especially when you need to f
 
 ## Typical no-downtime and non-locking cycle
 
-* add migaration that adds new column (null: true)
+* add migration that adds new column (null: true)
 * deploy and run migration task
 * deploy code that starts filling new column in corresponding flows
 * add backfill task
-* deploy and run backflill task
+* deploy and run backfill task
 * [optional] add migration that invokes backfill task asn so keep all environments consistent (except production environment because we already backfilled data)
 * add migration that disallow null values (null: false)
 * deploy code that starts using new column
@@ -49,7 +49,7 @@ Or install it yourself as:
 
 ## Usage
 
-Assume we we want to backfill `profiles.name` column from `users.first_name`, `users.last_name` columns.
+Assume we want to backfill `profiles.name` column from `users.first_name`, `users.last_name` columns.
 
 Create backfill task into `db/backfill/profile_name.rb` and defined required methods:
 
