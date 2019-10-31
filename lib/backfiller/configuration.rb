@@ -9,8 +9,6 @@ module Backfiller
 
     attr_accessor :task_namespace
 
-    attr_accessor :connection_pool
-
     attr_accessor :batch_size
 
     attr_accessor :logger

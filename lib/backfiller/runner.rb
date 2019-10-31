@@ -9,7 +9,7 @@ module Backfiller
 
     def initialize(task_name)
       @task = build_task(task_name)
-      @connection_pool = @task.respond_to?(:connection_pool) ? @task.connection_pool : Backfiller.connection_pool
+      @connection_pool = @task.respond_to?(:connection_pool) ? @task.connection_pool : default_connection_pool
       @batch_size = @task.respond_to?(:batch_size) ? @task.batch_size : Backfiller.batch_size
       @process_method = @task.respond_to?(:process_row) ? @task.method(:process_row) : self.method(:process_row)
     end
@@ -35,6 +35,10 @@ module Backfiller
     end
 
     ###########################################################################
+
+    def default_connection_pool
+      defined?(ApplicationRecord) ? ApplicationRecord.connection_pool : ActiveRecord::Base.connection_pool
+    end
 
     def acquire_connection
       connection_pool.checkout
