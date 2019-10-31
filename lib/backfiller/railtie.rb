@@ -13,8 +13,6 @@ module Backfiller
 
         config.batch_size = 1_000
 
-        config.connection_pool = defined?(ApplicationRecord) ? ApplicationRecord.connection_pool : ActiveRecord::Base.connection_pool
-
         config.logger = defined?(ApplicationRecord) ? ApplicationRecord.logger : ActiveRecord::Base.logger
       end
     end
