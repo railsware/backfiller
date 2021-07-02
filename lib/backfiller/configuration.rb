@@ -1,5 +1,6 @@
-module Backfiller
+# frozen_string_literal: true
 
+module Backfiller
   class << self
     def configure
       yield self
@@ -18,8 +19,9 @@ module Backfiller
     end
 
     def log(message)
-      logger.info "[Backfiller] #{message}" if logger
+      return unless logger
+
+      logger.info "[Backfiller] #{message}"
     end
   end
-
 end

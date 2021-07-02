@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Backfiller
   module Cursor
     class Postgresql
-
       attr_reader :connection
 
       def initialize(connection, name, query)
@@ -21,7 +22,6 @@ module Backfiller
       def close
         @connection.execute "CLOSE #{@name}"
       end
-
     end
   end
 end

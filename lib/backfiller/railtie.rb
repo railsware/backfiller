@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module Backfiller
   class Railtie < Rails::Railtie
-
     rake_tasks do
       load 'backfiller/tasks/db.rake'
     end
@@ -21,6 +22,5 @@ module Backfiller
       task_module = Backfiller.task_namespace.classify
       Object.const_set(task_module, Module.new) unless Object.const_defined?(task_module)
     end
-
   end
 end

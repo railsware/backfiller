@@ -1,5 +1,7 @@
-require 'backfiller/configuration'
-require 'backfiller/cursor'
-require 'backfiller/runner'
+# frozen_string_literal: true
 
-require 'backfiller/railtie' if defined?(Rails::Railtie)
+require_relative 'backfiller/configuration'
+require_relative 'backfiller/cursor'
+require_relative 'backfiller/runner'
+
+require_relative 'backfiller/railtie' if defined?(Rails::Railtie)

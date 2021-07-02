@@ -1,8 +1,9 @@
-require 'backfiller/cursor/postgresql'
+# frozen_string_literal: true
+
+require_relative 'backfiller/cursor/postgresql'
 
 module Backfiller
   module Cursor
-
     def self.new(connection, *args)
       case connection
       when ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
@@ -11,6 +12,5 @@ module Backfiller
         raise "Unsupported connection #{connection.inspect}"
       end
     end
-
   end
 end

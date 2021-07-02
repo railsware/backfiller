@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module Backfiller
   class Runner
-
     attr_reader \
       :task,
       :connection_pool,
@@ -11,7 +12,7 @@ module Backfiller
       @task = build_task(task_name)
       @connection_pool = @task.respond_to?(:connection_pool) ? @task.connection_pool : default_connection_pool
       @batch_size = @task.respond_to?(:batch_size) ? @task.batch_size : Backfiller.batch_size
-      @process_method = @task.respond_to?(:process_row) ? @task.method(:process_row) : self.method(:process_row)
+      @process_method = @task.respond_to?(:process_row) ? @task.method(:process_row) : method(:process_row)
     end
 
     def run
@@ -58,13 +59,13 @@ module Backfiller
       cursor = build_cursor(master_connection)
 
       cursor.connection.transaction do
-        Backfiller.log "Open cursor"
+        Backfiller.log 'Open cursor'
         cursor.open
 
-        Backfiller.log "Start fetch loop"
+        Backfiller.log 'Start fetch loop'
         fetch_loop(cursor, &block)
 
-        Backfiller.log "Close cursor"
+        Backfiller.log 'Close cursor'
         cursor.close
       end
     end
