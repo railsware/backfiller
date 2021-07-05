@@ -1,7 +1,32 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
-require 'backfiller'
+
+Bundler.require(:default)
+
+require 'active_support'
+require 'active_support/core_ext'
+require 'active_record'
+
+require_relative 'support/logger_mock'
+
+# Create logging
+ActiveSupport::LogSubscriber.colorize_logging = false
+
+# Initialize ActiveRecord
+ActiveRecord::Base.logger = LoggerMock.new
+ActiveRecord::Base.establish_connection(
+  url: 'postgresql://localhost/test',
+  pool: 5
+)
+
+# Configure Backfiller
+Backfiller.configure do |config|
+  config.task_directory = File.expand_path('../db/backfill', __dir__)
+  config.task_namespace = 'backfill'
+  config.batch_size = 10
+  config.logger = ActiveRecord::Base.logger
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -12,5 +37,9 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+
+  config.before do
+    ActiveRecord::Base.logger.reset
   end
 end

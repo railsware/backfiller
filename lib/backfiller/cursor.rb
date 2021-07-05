@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'backfiller/cursor/postgresql'
+require_relative 'cursor/postgresql'
 
 module Backfiller
   module Cursor
