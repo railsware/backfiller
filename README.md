@@ -1,6 +1,6 @@
 ![Backfill machine](https://railsware.github.io/backfiller/assets/backfill_machine.jpg)
 
-# Backfiller
+# Backfiller [![Build Status](https://travis-ci.com/railsware/backfiller.svg?branch=master)](https://travis-ci.com/railsware/backfiller)
 
 The backfill machine for null database columns.
 This gem maybe handly for `no-downtime` deployment especially when you need to fill columns for table with huge amount for records without locking the table.

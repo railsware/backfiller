@@ -1,0 +1,14 @@
+language: ruby
+rvm:
+  - 2.7.2
+gemfile:
+  - Gemfile
+cache: bundler
+before_install:
+  - gem install bundler
+before_script:
+  - psql -c 'create database test;' -U postgres
+script:
+  - bundle exec rake ci
+services:
+  - postgresql
