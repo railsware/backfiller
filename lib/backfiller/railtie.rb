@@ -14,6 +14,8 @@ module Backfiller
 
         config.batch_size = 1_000
 
+        config.cursor_threshold = 100_000
+
         config.logger = defined?(ApplicationRecord) ? ApplicationRecord.logger : ActiveRecord::Base.logger
       end
     end

@@ -11,6 +11,25 @@ module Backfiller
         @query = query
       end
 
+      # Open cursor, call black and close cursor in transaction.
+      #
+      # @return [Object] yielded block result.
+      def transaction
+        result = nil
+
+        @connection.transaction do
+          Backfiller.log 'Open cursor'
+          open
+
+          result = yield
+
+          Backfiller.log 'Close cursor'
+          close
+        end
+
+        result
+      end
+
       def open
         @connection.execute "DECLARE #{@name} NO SCROLL CURSOR WITHOUT HOLD FOR #{@query}"
       end

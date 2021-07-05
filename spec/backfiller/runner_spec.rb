@@ -35,7 +35,8 @@ RSpec.describe Backfiller::Runner do
 
       specify do
         expect(runner.task.class).to eq(Backfill::Dummy)
-        expect(runner.batch_size).to eq(10)
+        expect(runner.batch_size).to eq(4)
+        expect(runner.cursor_threshold).to eq(10)
         expect(runner.process_method).to eq(runner.method(:process_row))
       end
     end
@@ -45,7 +46,11 @@ RSpec.describe Backfiller::Runner do
         File.write task_path, <<~TASK
           class Backfill::Dummy
             def batch_size
-              20
+              2000
+            end
+
+            def cursor_threshold
+              200000
             end
 
             def process_row
@@ -56,7 +61,8 @@ RSpec.describe Backfiller::Runner do
 
       specify do
         expect(runner.task.class).to eq(Backfill::Dummy)
-        expect(runner.batch_size).to eq(20)
+        expect(runner.batch_size).to eq(2000)
+        expect(runner.cursor_threshold).to eq(200_000)
         expect(runner.process_method).to eq(runner.task.method(:process_row))
       end
     end
@@ -68,6 +74,14 @@ RSpec.describe Backfiller::Runner do
     before do
       File.write task_path, <<~TASK
         class Backfill::Dummy
+          def batch_size
+            2
+          end
+
+          def cursor_threshold
+            5
+          end
+
           def select_sql()
             'SELECT * FROM backfiller_records WHERE full_name IS NULL'
           end
@@ -106,25 +120,28 @@ RSpec.describe Backfiller::Runner do
 
       messages = ActiveRecord::Base.logger.messages
       expect(messages[0]).to eq('[Backfiller] Build dummy task')
-      expect(messages[1]).to eq('[Backfiller] Open cursor')
-      expect(messages[2]).to match(/TRANSACTION \(.*\)  BEGIN/)
-      expect(messages[3]).to include(
+      expect(messages[1]).to eq('[Backfiller] Start cursor loop')
+
+      expect(messages[2]).to eq('[Backfiller] Open cursor')
+      expect(messages[3]).to match(/TRANSACTION \(.*\)  BEGIN/)
+      expect(messages[4]).to include(
         'DECLARE backfill_cursor NO SCROLL CURSOR WITHOUT HOLD FOR ' \
         'SELECT * FROM backfiller_records WHERE full_name IS NULL'
       )
-      expect(messages[4]).to eq('[Backfiller] Start fetch loop')
-      expect(messages[5]).to include('FETCH 10 FROM backfill_cursor')
-      expect(messages[6]).to include(
+      expect(messages[5]).to eq('[Backfiller] Start fetch loop')
+      expect(messages[6]).to include('FETCH 2 FROM backfill_cursor')
+      expect(messages[7]).to include(
         "UPDATE backfiller_records SET full_name = 'Jon Snow' WHERE id = 1"
       )
-      expect(messages[7]).to include(
+      expect(messages[8]).to include(
         "UPDATE backfiller_records SET full_name = 'Aria Stark' WHERE id = 2"
       )
-      expect(messages[8]).to eq('[Backfiller] Processed 2')
-      expect(messages[9]).to include('FETCH 10 FROM backfill_cursor')
-      expect(messages[10]).to eq('[Backfiller] Close cursor')
-      expect(messages[11]).to include('CLOSE backfill_cursor')
-      expect(messages[12]).to match(/TRANSACTION \(.*\)  COMMIT/)
+      expect(messages[9]).to eq('[Backfiller] Processed 2')
+      expect(messages[10]).to include('FETCH 2 FROM backfill_cursor')
+      expect(messages[11]).to eq('[Backfiller] Close cursor')
+      expect(messages[12]).to include('CLOSE backfill_cursor')
+      expect(messages[13]).to match(/TRANSACTION \(.*\)  COMMIT/)
+      expect(messages[14]).to eq('[Backfiller] Total processed 2')
 
       expect(
         ActiveRecord::Base.connection.select_all('SELECT * FROM backfiller_records ORDER BY id').to_a
@@ -150,6 +167,65 @@ RSpec.describe Backfiller::Runner do
           }
         ]
       )
+    end
+
+    context 'cursor_threshold' do
+      specify do
+        ActiveRecord::Base.connection.insert_fixture(
+          [
+            { first_name: 'First01', last_name: 'Last01' },
+            { first_name: 'First02', last_name: 'Last02' },
+            { first_name: 'First03', last_name: 'Last03' },
+            { first_name: 'First04', last_name: 'Last04' },
+            { first_name: 'First05', last_name: 'Last05' },
+            { first_name: 'First06', last_name: 'Last06' },
+            { first_name: 'First07', last_name: 'Last07' }
+          ], :backfiller_records
+        )
+
+        ActiveRecord::Base.logger.reset
+
+        subject
+
+        messages = ActiveRecord::Base.logger.messages
+
+        expect(messages[0]).to eq('[Backfiller] Build dummy task')
+        expect(messages[1]).to eq('[Backfiller] Start cursor loop')
+
+        expect(messages[2]).to eq('[Backfiller] Open cursor')
+        expect(messages[3]).to match(/TRANSACTION \(.*\)  BEGIN/)
+        expect(messages[4]).to include('DECLARE backfill_cursor')
+        expect(messages[5]).to eq('[Backfiller] Start fetch loop')
+        expect(messages[6]).to include('FETCH 2 FROM backfill_cursor')
+        expect(messages[7]).to include("UPDATE backfiller_records SET full_name = 'First01 Last01' WHERE id = 1")
+        expect(messages[8]).to include("UPDATE backfiller_records SET full_name = 'First02 Last02' WHERE id = 2")
+        expect(messages[9]).to eq('[Backfiller] Processed 2')
+        expect(messages[10]).to include('FETCH 2 FROM backfill_cursor')
+        expect(messages[11]).to include("UPDATE backfiller_records SET full_name = 'First03 Last03' WHERE id = 3")
+        expect(messages[12]).to include("UPDATE backfiller_records SET full_name = 'First04 Last04' WHERE id = 4")
+        expect(messages[13]).to eq('[Backfiller] Processed 4')
+        expect(messages[14]).to include('FETCH 2 FROM backfill_cursor')
+        expect(messages[15]).to include("UPDATE backfiller_records SET full_name = 'First05 Last05' WHERE id = 5")
+        expect(messages[16]).to include("UPDATE backfiller_records SET full_name = 'First06 Last06' WHERE id = 6")
+        expect(messages[17]).to eq('[Backfiller] Processed 6')
+        expect(messages[18]).to eq('[Backfiller] Close cursor')
+        expect(messages[19]).to include('CLOSE backfill_cursor')
+        expect(messages[20]).to match(/TRANSACTION \(.*\)  COMMIT/)
+        expect(messages[21]).to eq('[Backfiller] Total processed 6')
+
+        expect(messages[22]).to eq('[Backfiller] Open cursor')
+        expect(messages[23]).to match(/TRANSACTION \(.*\)  BEGIN/)
+        expect(messages[24]).to include('DECLARE backfill_cursor')
+        expect(messages[25]).to eq('[Backfiller] Start fetch loop')
+        expect(messages[26]).to include('FETCH 2 FROM backfill_cursor')
+        expect(messages[27]).to include("UPDATE backfiller_records SET full_name = 'First07 Last07' WHERE id = 7")
+        expect(messages[28]).to eq('[Backfiller] Processed 1')
+        expect(messages[29]).to include('FETCH 2 FROM backfill_cursor')
+        expect(messages[30]).to eq('[Backfiller] Close cursor')
+        expect(messages[31]).to include('CLOSE backfill_cursor')
+        expect(messages[32]).to match(/TRANSACTION \(.*\)  COMMIT/)
+        expect(messages[33]).to eq('[Backfiller] Total processed 7')
+      end
     end
   end
 end

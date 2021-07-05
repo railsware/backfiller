@@ -24,7 +24,8 @@ ActiveRecord::Base.establish_connection(
 Backfiller.configure do |config|
   config.task_directory = File.expand_path('../db/backfill', __dir__)
   config.task_namespace = 'backfill'
-  config.batch_size = 10
+  config.batch_size = 4
+  config.cursor_threshold = 10
   config.logger = ActiveRecord::Base.logger
 end
 
