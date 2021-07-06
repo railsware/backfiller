@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+* `cursor_threshold` is nil by default.
+
 ## 0.2.0
 
 * Upgrade local gems
