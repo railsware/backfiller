@@ -114,7 +114,7 @@ module Backfiller
 
         Backfiller.log "Processed #{count}"
 
-        return [false, count] if count > cursor_threshold
+        return [false, count] if cursor_threshold && count > cursor_threshold
       end
     end
 
