@@ -168,6 +168,7 @@ For Rails application backfiller is initialized with next options
 * task_directory: `RAILS_ROOT/db/backfill`
 * task_namespace: `Backfill`
 * batch_size: `1_000`
+* cursor_threshold: `nil`
 * connection_pool: `ApplicationRecord.connection_pool`
 * logger: `ApplicationRecord.logger`
 
@@ -185,6 +186,10 @@ Or specify some options in certain backfill task
 class Backfill::Foo
   def batch_size
     100
+  end
+
+  def cursor_threshold
+    100_000
   end
 end
 ```
