@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Backfiller::Runner do
+RSpec.describe Backfiller::Runner::Single do
   let(:runner) do
     described_class.new(task_name)
   end
