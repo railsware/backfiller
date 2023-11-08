@@ -22,6 +22,10 @@ class LoggerMock
     end
   end
 
+  def level
+    Logger::DEBUG
+  end
+
   def reset
     @messages.clear
   end

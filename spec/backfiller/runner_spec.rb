@@ -284,5 +284,27 @@ RSpec.describe Backfiller::Runner do
         end
       end
     end
+
+    describe 'backfill raises an exception' do
+      before do
+        File.write task_path, <<~TASK
+          class Backfill::Dummy
+
+            def select_sql()
+              raise RuntimeError, 'failed backfill'
+            end
+
+            def execute_sql(connection, row)
+              raise RuntimeError, 'failed backfill'
+            end
+          end
+        TASK
+      end
+
+      it 'connections are returned to the pool' do
+        expect { subject }.to raise_error(RuntimeError, 'failed backfill')
+          .and not_change { ActiveRecord::Base.connection_pool.stat[:busy] }
+      end
+    end
   end
 end

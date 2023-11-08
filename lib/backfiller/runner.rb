@@ -46,12 +46,14 @@ module Backfiller
       master_connection = acquire_connection
       worker_connection = acquire_connection
 
-      run_cursor_loop(master_connection) do |row|
-        process_method.call(worker_connection, row)
+      begin
+        run_cursor_loop(master_connection) do |row|
+          process_method.call(worker_connection, row)
+        end
+      ensure
+        release_connection(master_connection)
+        release_connection(worker_connection)
       end
-
-      release_connection(master_connection)
-      release_connection(worker_connection)
     end
 
     private

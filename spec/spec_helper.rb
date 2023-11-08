@@ -10,6 +10,9 @@ require 'active_record'
 
 require_relative 'support/logger_mock'
 
+# Configure rspec matchers
+RSpec::Matchers.define_negated_matcher :not_change, :change
+
 # Create logging
 ActiveSupport::LogSubscriber.colorize_logging = false
 
