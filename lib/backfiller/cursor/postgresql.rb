@@ -35,7 +35,7 @@ module Backfiller
       end
 
       def fetch(count)
-        @connection.select_all "FETCH #{count} FROM #{@name}"
+        @connection.exec_query "FETCH #{count} FROM #{@name}"
       end
 
       def close
