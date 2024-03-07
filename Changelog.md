@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.3
+- Fix cursor bug in case of enabled query cache (#6) 
+
 ## 0.2.2
 
 - Always release connections in runner (#5).

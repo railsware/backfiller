@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name = 'backfiller'
-  spec.version = '0.2.2'
+  spec.version = '0.2.3'
   spec.authors = ['Andriy Yanko']
   spec.email = ['andriy.yanko@railsware.com']
 
@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop', '~> 1.18.0'
 
   spec.add_development_dependency 'pg', '~> 1.2.0'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end
